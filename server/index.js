@@ -2,10 +2,17 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 
+// Load environment variables first
+dotenv.config();
+
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
 
-dotenv.config();
+// Initialize Cloudinary configuration (after dotenv)
+require("./config/cloudinary");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +27,9 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

@@ -41,15 +41,16 @@ const productSchema = new mongoose.Schema(
             min: [0, "Cost price cannot be negative"],
             default: null,
         },
-        category: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Category",
-            required: [true, "Product category is required"],
-        },
+        categories: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Category",
+            },
+        ],
         subcategory: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Category",
+            type: String,
             default: null,
+            trim: true,
         },
         brand: {
             type: String,
