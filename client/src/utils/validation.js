@@ -24,17 +24,13 @@ export const validateProductForm = (formData) => {
         errors.price = "Price must be greater than 0";
     }
 
-    if (!formData.category?.trim()) {
-        errors.category = "Category is required";
-    }
+    // Categories validation is optional - products can have 0 or more categories
 
     if (formData.stock?.quantity !== undefined && formData.stock.quantity < 0) {
         errors.stock = "Stock quantity cannot be negative";
     }
 
-    if (formData.images && formData.images.length === 0) {
-        errors.images = "At least one product image is required";
-    }
+    // Images are optional - products can be created without images
 
     return {
         isValid: Object.keys(errors).length === 0,

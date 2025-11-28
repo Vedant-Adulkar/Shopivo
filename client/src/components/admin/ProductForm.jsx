@@ -15,7 +15,7 @@ export const ProductForm = ({ product, onSubmit, onCancel, loading }) => {
         shortDescription: "",
         price: "",
         comparePrice: "",
-        category: "",
+        categories: [],
         brand: "",
         sku: "",
         images: [],
@@ -40,7 +40,7 @@ export const ProductForm = ({ product, onSubmit, onCancel, loading }) => {
                 shortDescription: product.shortDescription || "",
                 price: product.price || "",
                 comparePrice: product.comparePrice || "",
-                category: product.category?.name || product.category || "",
+                categories: product.categories?.map(cat => typeof cat === 'object' ? cat._id : cat) || [],
                 brand: product.brand || "",
                 sku: product.sku || "",
                 images: product.images || [],
@@ -164,26 +164,54 @@ export const ProductForm = ({ product, onSubmit, onCancel, loading }) => {
                 />
             </div>
 
-            {/* Category & Brand */}
+            {/* Categories & Brand */}
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="mb-2 block text-sm font-semibold text-slate-300">
-                        Category *
+                        Categories
                     </label>
                     <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        className="w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50"
+                        name="categories"
+                        multiple
+                        value={formData.categories}
+                        onChange={(e) => {
+                            const selected = Array.from(e.target.selectedOptions, option => option.value);
+                            setFormData(prev => ({ ...prev, categories: selected }));
+                        }}
+                        className="w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[120px]"
                     >
-                        <option value="">Select category</option>
                         {PRODUCT_CATEGORIES.map((cat) => (
                             <option key={cat} value={cat}>
                                 {cat}
                             </option>
                         ))}
                     </select>
-                    {errors.category && <p className="mt-1 text-sm text-red-400">{errors.category}</p>}
+                    <p className="mt-1 text-xs text-slate-400">Hold Ctrl/Cmd to select multiple</p>
+                    {formData.categories.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            {formData.categories.map((cat) => (
+                                <span
+                                    key={cat}
+                                    className="inline-flex items-center gap-2 rounded-full bg-violet-500/20 px-3 py-1 text-sm text-violet-300"
+                                >
+                                    {cat}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                categories: prev.categories.filter(c => c !== cat)
+                                            }));
+                                        }}
+                                        className="hover:text-white"
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                    {errors.categories && <p className="mt-1 text-sm text-red-400">{errors.categories}</p>}
                 </div>
 
                 <Input

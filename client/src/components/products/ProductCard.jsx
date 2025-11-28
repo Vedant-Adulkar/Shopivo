@@ -1,14 +1,51 @@
-import { formatPrice, getStockStatus, truncateText } from "../../utils/formatters";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../store/slices/cartSlice";
+import { formatPrice, truncateText } from "../../utils/formatters";
+import { Toast } from "../ui/Toast";
 
 /**
  * Product card component
  */
 export const ProductCard = ({ product }) => {
-    const stockStatus = getStockStatus(product.stock?.quantity || 0);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState(null);
     const primaryImage = product.images?.find((img) => img.isPrimary) || product.images?.[0];
 
+    const handleClick = () => {
+        navigate(`/product/${product._id}`);
+    };
+
+    const handleAddToCart = async (e) => {
+        e.stopPropagation();
+
+        // Check stock availability
+        if (product.stock?.trackInventory && product.stock?.quantity < 1) {
+            setToast({ type: "error", message: "Product is out of stock" });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await dispatch(addToCart({ productId: product._id, quantity: 1 })).unwrap();
+            setToast({ type: "success", message: "Added to cart!" });
+        } catch (error) {
+            setToast({ type: "error", message: error || "Failed to add to cart" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const isOutOfStock = product.stock?.trackInventory && product.stock?.quantity < 1;
+
     return (
-        <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-800/70 p-4 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(139,92,246,0.3)]">
+        <div
+            onClick={handleClick}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-800/70 p-4 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-violet-500/50 hover:shadow-[0_20px_60px_rgba(139,92,246,0.3)] cursor-pointer"
+        >
             {/* Product Image */}
             <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-slate-800">
                 {primaryImage ? (
@@ -29,20 +66,13 @@ export const ProductCard = ({ product }) => {
                         </svg>
                     </div>
                 )}
-
-                {/* Stock Badge */}
-                <div className="absolute top-2 right-2">
-                    <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold backdrop-blur-sm ${stockStatus.label === "Out of Stock"
-                                ? "bg-red-500/90 text-white"
-                                : stockStatus.label === "Low Stock"
-                                    ? "bg-yellow-500/90 text-slate-900"
-                                    : "bg-green-500/90 text-white"
-                            }`}
-                    >
-                        {stockStatus.label}
-                    </span>
-                </div>
+                {isOutOfStock && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                        <span className="rounded-lg bg-red-500 px-3 py-1 text-sm font-bold text-white">
+                            Out of Stock
+                        </span>
+                    </div>
+                )}
             </div>
 
             {/* Product Info */}
@@ -65,11 +95,28 @@ export const ProductCard = ({ product }) => {
                         )}
                     </div>
 
-                    <button className="rounded-xl bg-gradient-to-r from-violet-500 to-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl">
-                        Add to Cart
+                    <button
+                        onClick={handleAddToCart}
+                        disabled={loading || isOutOfStock}
+                        className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all ${isOutOfStock
+                                ? "bg-slate-600 cursor-not-allowed"
+                                : loading
+                                    ? "bg-violet-400 cursor-wait"
+                                    : "bg-gradient-to-r from-violet-500 to-indigo-500 hover:-translate-y-0.5 hover:shadow-xl"
+                            }`}
+                    >
+                        {loading ? "Adding..." : isOutOfStock ? "Out of Stock" : "Add to Cart"}
                     </button>
                 </div>
             </div>
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 };

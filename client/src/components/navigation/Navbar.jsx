@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { SearchBar } from "./SearchBar";
 import { UserMenu } from "./UserMenu";
+import { CartIcon } from "./CartIcon";
 
 /**
  * Main navigation bar component
@@ -50,8 +51,8 @@ export const Navbar = ({ showSearch = false }) => {
                         <Link
                             to="/home"
                             className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${location.pathname === "/home"
-                                    ? "bg-violet-500/20 text-violet-300"
-                                    : "text-slate-300 hover:bg-white/10 hover:text-white"
+                                ? "bg-violet-500/20 text-violet-300"
+                                : "text-slate-300 hover:bg-white/10 hover:text-white"
                                 }`}
                         >
                             Home
@@ -61,14 +62,15 @@ export const Navbar = ({ showSearch = false }) => {
                             <Link
                                 to="/admin"
                                 className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${location.pathname === "/admin"
-                                        ? "bg-violet-500/20 text-violet-300"
-                                        : "text-slate-300 hover:bg-white/10 hover:text-white"
+                                    ? "bg-violet-500/20 text-violet-300"
+                                    : "text-slate-300 hover:bg-white/10 hover:text-white"
                                     }`}
                             >
                                 Admin Panel
                             </Link>
                         )}
 
+                        <CartIcon />
                         <UserMenu />
                     </div>
                 </div>

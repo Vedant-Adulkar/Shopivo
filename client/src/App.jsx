@@ -3,6 +3,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Home";
 import AdminPanel from "./pages/AdminPanel";
+import ProductDetails from "./pages/ProductDetails";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import { useAuth } from "./context/AuthContext";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -46,6 +49,30 @@ function App() {
           }
         />
         <Route
+          path="/product/:id"
+          element={
+            <ProtectedRoute allowedRoles={["user", "admin"]}>
+              <ProductDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute allowedRoles={["user", "admin"]}>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute allowedRoles={["user", "admin"]}>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
@@ -60,4 +87,5 @@ function App() {
 }
 
 export default App;
+
 

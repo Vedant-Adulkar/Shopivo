@@ -36,22 +36,12 @@ const productSchema = new mongoose.Schema(
             min: [0, "Compare price cannot be negative"],
             default: null,
         },
-        costPrice: {
-            type: Number,
-            min: [0, "Cost price cannot be negative"],
-            default: null,
-        },
         categories: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Category",
+                type: String,
+                trim: true,
             },
         ],
-        subcategory: {
-            type: String,
-            default: null,
-            trim: true,
-        },
         brand: {
             type: String,
             trim: true,
@@ -63,11 +53,6 @@ const productSchema = new mongoose.Schema(
             unique: true,
             trim: true,
             uppercase: true,
-        },
-        barcode: {
-            type: String,
-            trim: true,
-            default: null,
         },
         images: [
             {
@@ -101,58 +86,12 @@ const productSchema = new mongoose.Schema(
                 default: true,
             },
         },
-        variants: [
-            {
-                name: {
-                    type: String,
-                    required: true,
-                },
-                options: [
-                    {
-                        value: String,
-                        priceAdjustment: {
-                            type: Number,
-                            default: 0,
-                        },
-                        sku: String,
-                        stock: {
-                            type: Number,
-                            default: 0,
-                        },
-                    },
-                ],
-            },
-        ],
-        specifications: [
-            {
-                name: {
-                    type: String,
-                    required: true,
-                },
-                value: {
-                    type: String,
-                    required: true,
-                },
-            },
-        ],
         tags: [
             {
                 type: String,
                 trim: true,
             },
         ],
-        ratings: {
-            average: {
-                type: Number,
-                default: 0,
-                min: 0,
-                max: 5,
-            },
-            count: {
-                type: Number,
-                default: 0,
-            },
-        },
         isActive: {
             type: Boolean,
             default: true,
@@ -165,55 +104,17 @@ const productSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
-        weight: {
-            value: {
-                type: Number,
-                min: 0,
-            },
-            unit: {
-                type: String,
-                enum: ["kg", "g", "lb", "oz"],
-                default: "kg",
-            },
-        },
-        dimensions: {
-            length: Number,
-            width: Number,
-            height: Number,
-            unit: {
-                type: String,
-                enum: ["cm", "m", "in", "ft"],
-                default: "cm",
-            },
-        },
-        seo: {
-            metaTitle: {
-                type: String,
-                maxlength: [60, "Meta title cannot exceed 60 characters"],
-            },
-            metaDescription: {
-                type: String,
-                maxlength: [160, "Meta description cannot exceed 160 characters"],
-            },
-            keywords: [String],
-        },
-        seller: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            default: null,
-        },
-        views: {
-            type: Number,
-            default: 0,
-        },
-        soldCount: {
-            type: Number,
-            default: 0,
-        },
     },
     {
         timestamps: true,
     }
 );
+
+// Create text index for efficient search
+productSchema.index({
+    name: "text",
+    description: "text",
+    tags: "text",
+});
 
 module.exports = mongoose.model("Product", productSchema);

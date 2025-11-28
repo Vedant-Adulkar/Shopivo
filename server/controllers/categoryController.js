@@ -1,16 +1,5 @@
 const Category = require("../models/Category");
-
-/**
- * Generate slug from category name
- */
-const generateSlug = (name) => {
-    return name
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-};
+const generateSlug = require("../utils/generateSlug");
 
 /**
  * Get all categories

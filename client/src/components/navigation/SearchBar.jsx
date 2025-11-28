@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setSearchQuery } from "../../store/slices/productsSlice";
 import { useDebounce } from "../../hooks/useDebounce";
@@ -12,7 +12,7 @@ export const SearchBar = () => {
     const debouncedSearch = useDebounce(localSearch, 300);
 
     // Update Redux when debounced value changes
-    useState(() => {
+    useEffect(() => {
         dispatch(setSearchQuery(debouncedSearch));
     }, [debouncedSearch, dispatch]);
 

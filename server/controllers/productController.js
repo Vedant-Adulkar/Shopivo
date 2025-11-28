@@ -1,16 +1,5 @@
 const Product = require("../models/Product");
-
-/**
- * Generate slug from product name
- */
-const generateSlug = (name) => {
-    return name
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-};
+const generateSlug = require("../utils/generateSlug");
 
 /**
  * Generate SKU if not provided
@@ -30,14 +19,12 @@ exports.getAllProducts = async (req, res, next) => {
         const query = { isActive: true };
 
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: "i" } },
-                { description: { $regex: search, $options: "i" } },
-                { tags: { $regex: search, $options: "i" } },
-            ];
+            query.$text = { $search: search };
         }
 
-        const products = await Product.find(query).sort({ createdAt: -1 });
+        const products = await Product.find(query)
+            .sort(search ? { score: { $meta: "textScore" }, createdAt: -1 } : { createdAt: -1 })
+            .select(search ? { score: { $meta: "textScore" } } : {});
 
         res.status(200).json({
             message: "Products fetched successfully.",
@@ -62,9 +49,30 @@ exports.getProductById = async (req, res, next) => {
             return res.status(404).json({ message: "Product not found." });
         }
 
+        // Filter out internal/admin-only fields for customer-facing response
+        const customerVisibleProduct = {
+            _id: product._id,
+            name: product.name,
+            slug: product.slug,
+            description: product.description,
+            shortDescription: product.shortDescription,
+            price: product.price,
+            comparePrice: product.comparePrice,
+            categories: product.categories,
+            brand: product.brand,
+            sku: product.sku,
+            images: product.images,
+            stock: product.stock,
+            tags: product.tags,
+            isFeatured: product.isFeatured,
+            isNewArrival: product.isNewArrival,
+            createdAt: product.createdAt,
+            updatedAt: product.updatedAt,
+        };
+
         res.status(200).json({
             message: "Product fetched successfully.",
-            product,
+            product: customerVisibleProduct,
         });
     } catch (error) {
         next(error);
@@ -82,7 +90,7 @@ exports.createProduct = async (req, res, next) => {
             shortDescription,
             price,
             comparePrice,
-            category,
+            categories,
             brand,
             sku,
             images,
@@ -93,9 +101,9 @@ exports.createProduct = async (req, res, next) => {
         } = req.body;
 
         // Validate required fields
-        if (!name || !description || !price || !category) {
+        if (!name || !description || !price) {
             return res.status(400).json({
-                message: "Name, description, price, and category are required.",
+                message: "Name, description, and price are required.",
             });
         }
 
@@ -119,7 +127,7 @@ exports.createProduct = async (req, res, next) => {
             shortDescription,
             price,
             comparePrice,
-            category,
+            categories: categories || [],
             brand,
             sku: productSKU,
             images: images || [],
@@ -131,7 +139,6 @@ exports.createProduct = async (req, res, next) => {
             tags: tags || [],
             isFeatured: isFeatured || false,
             isNewArrival: isNewArrival || false,
-            seller: req.user._id,
         });
 
         res.status(201).json({
@@ -164,7 +171,6 @@ exports.updateProduct = async (req, res, next) => {
         // Remove fields that shouldn't be updated directly
         delete updateData._id;
         delete updateData.createdAt;
-        delete updateData.seller;
 
         const product = await Product.findByIdAndUpdate(id, updateData, {
             new: true,
