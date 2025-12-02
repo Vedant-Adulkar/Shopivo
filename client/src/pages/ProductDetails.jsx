@@ -7,6 +7,7 @@ import { MainLayout } from "../layouts/MainLayout";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { formatPrice } from "../utils/formatters";
 import { Toast } from "../components/ui/Toast";
+import { RecommendedProducts } from "../components/products/RecommendedProducts";
 
 /**
  * Product Details Page - displays comprehensive product information
@@ -317,6 +318,7 @@ const ProductDetails = () => {
                     </div>
                 </div>
 
+
                 {/* Full Description */}
                 {
                     product.description && (
@@ -327,12 +329,10 @@ const ProductDetails = () => {
                     )
                 }
 
+                {/* Recommended Products */}
+                <RecommendedProducts productId={product._id} />
 
-
-
-
-
-            </div >
+            </div>
 
             {toast && (
                 <Toast
@@ -341,7 +341,7 @@ const ProductDetails = () => {
                     onClose={() => setToast(null)}
                 />
             )}
-        </MainLayout >
+        </MainLayout>
     );
 };
 

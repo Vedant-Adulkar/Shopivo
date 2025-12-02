@@ -85,7 +85,7 @@ export const ProductCard = ({ product }) => {
                     </p>
                 )}
 
-                <div className="flex items-center justify-between pt-2">
+                <div className="pt-2 space-y-3">
                     <div>
                         <p className="text-2xl font-bold text-violet-300">{formatPrice(product.price)}</p>
                         {product.comparePrice && product.comparePrice > product.price && (
@@ -98,11 +98,11 @@ export const ProductCard = ({ product }) => {
                     <button
                         onClick={handleAddToCart}
                         disabled={loading || isOutOfStock}
-                        className={`rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all ${isOutOfStock
-                                ? "bg-slate-600 cursor-not-allowed"
-                                : loading
-                                    ? "bg-violet-400 cursor-wait"
-                                    : "bg-gradient-to-r from-violet-500 to-indigo-500 hover:-translate-y-0.5 hover:shadow-xl"
+                        className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all ${isOutOfStock
+                            ? "bg-slate-600 cursor-not-allowed"
+                            : loading
+                                ? "bg-violet-400 cursor-wait"
+                                : "bg-gradient-to-r from-violet-500 to-indigo-500 hover:-translate-y-0.5 hover:shadow-xl"
                             }`}
                     >
                         {loading ? "Adding..." : isOutOfStock ? "Out of Stock" : "Add to Cart"}

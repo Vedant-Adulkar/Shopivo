@@ -4,9 +4,9 @@ import * as productsAPI from "../../api/products";
 // Async thunks
 export const fetchProducts = createAsyncThunk(
     "products/fetchProducts",
-    async (searchQuery, { rejectWithValue }) => {
+    async ({ searchQuery = "", filters = {} } = {}, { rejectWithValue }) => {
         try {
-            const data = await productsAPI.fetchProducts(searchQuery);
+            const data = await productsAPI.fetchProducts(searchQuery, filters);
             return data.products;
         } catch (error) {
             return rejectWithValue(
@@ -66,10 +66,60 @@ const productsSlice = createSlice({
         loading: false,
         error: null,
         searchQuery: "",
+        filters: {
+            categories: [],
+            minPrice: "",
+            maxPrice: "",
+            brands: [],
+            tags: [],
+        },
     },
     reducers: {
         setSearchQuery: (state, action) => {
             state.searchQuery = action.payload;
+        },
+        setFilters: (state, action) => {
+            state.filters = { ...state.filters, ...action.payload };
+        },
+        toggleCategoryFilter: (state, action) => {
+            const category = action.payload;
+            const index = state.filters.categories.indexOf(category);
+            if (index > -1) {
+                state.filters.categories.splice(index, 1);
+            } else {
+                state.filters.categories.push(category);
+            }
+        },
+        setPriceRange: (state, action) => {
+            state.filters.minPrice = action.payload.minPrice || "";
+            state.filters.maxPrice = action.payload.maxPrice || "";
+        },
+        toggleBrandFilter: (state, action) => {
+            const brand = action.payload;
+            const index = state.filters.brands.indexOf(brand);
+            if (index > -1) {
+                state.filters.brands.splice(index, 1);
+            } else {
+                state.filters.brands.push(brand);
+            }
+        },
+        toggleTagFilter: (state, action) => {
+            const tag = action.payload;
+            const index = state.filters.tags.indexOf(tag);
+            if (index > -1) {
+                state.filters.tags.splice(index, 1);
+            } else {
+                state.filters.tags.push(tag);
+            }
+        },
+        clearFilters: (state) => {
+            state.filters = {
+                categories: [],
+                minPrice: "",
+                maxPrice: "",
+                brands: [],
+                tags: [],
+            };
         },
         clearError: (state) => {
             state.error = null;
@@ -140,19 +190,44 @@ export const selectAllProducts = (state) => state.products.items;
 export const selectProductsLoading = (state) => state.products.loading;
 export const selectProductsError = (state) => state.products.error;
 export const selectSearchQuery = (state) => state.products.searchQuery;
+export const selectFilters = (state) => state.products.filters;
 
-export const selectFilteredProducts = (state) => {
-    const { items, searchQuery } = state.products;
-    if (!searchQuery.trim()) return items;
+// Return products from Redux store (already filtered by backend)
+export const selectFilteredProducts = (state) => state.products.items;
 
-    const query = searchQuery.toLowerCase();
-    return items.filter(
-        (product) =>
-            product.name.toLowerCase().includes(query) ||
-            product.description?.toLowerCase().includes(query) ||
-            product.tags?.some((tag) => tag.toLowerCase().includes(query))
-    );
+// Get unique filter options from all products
+export const selectAvailableFilterOptions = (state) => {
+    const products = state.products.items;
+
+    const categories = [...new Set(products.flatMap(p => p.categories || []))].sort();
+    const brands = [...new Set(products.map(p => p.brand).filter(Boolean))].sort();
+    const tags = [...new Set(products.flatMap(p => p.tags || []))].sort();
+
+    return { categories, brands, tags };
 };
 
-export const { setSearchQuery, clearError } = productsSlice.actions;
+// Get active filter count
+export const selectActiveFilterCount = (state) => {
+    const { categories, brands, tags, minPrice, maxPrice } = state.products.filters;
+    let count = 0;
+
+    if (categories.length > 0) count += categories.length;
+    if (brands.length > 0) count += brands.length;
+    if (tags.length > 0) count += tags.length;
+    if (minPrice || maxPrice) count += 1;
+
+    return count;
+};
+
+export const {
+    setSearchQuery,
+    setFilters,
+    toggleCategoryFilter,
+    setPriceRange,
+    toggleBrandFilter,
+    toggleTagFilter,
+    clearFilters,
+    clearError,
+} = productsSlice.actions;
+
 export default productsSlice.reducer;

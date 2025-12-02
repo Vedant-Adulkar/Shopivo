@@ -11,15 +11,45 @@ const generateSKU = () => {
 };
 
 /**
- * Get all products with optional search
+ * Get all products with optional search and filters
  */
 exports.getAllProducts = async (req, res, next) => {
     try {
-        const { search } = req.query;
+        const { search, categories, minPrice, maxPrice, brands, tags } = req.query;
         const query = { isActive: true };
 
+        // Text search
         if (search) {
             query.$text = { $search: search };
+        }
+
+        // Category filter - match any of the selected categories
+        if (categories) {
+            const categoryArray = Array.isArray(categories) ? categories : [categories];
+            query.categories = { $in: categoryArray };
+        }
+
+        // Price range filter
+        if (minPrice || maxPrice) {
+            query.price = {};
+            if (minPrice) {
+                query.price.$gte = parseFloat(minPrice);
+            }
+            if (maxPrice) {
+                query.price.$lte = parseFloat(maxPrice);
+            }
+        }
+
+        // Brand filter - match any of the selected brands
+        if (brands) {
+            const brandArray = Array.isArray(brands) ? brands : [brands];
+            query.brand = { $in: brandArray };
+        }
+
+        // Tags filter - match products that have at least one of the selected tags
+        if (tags) {
+            const tagArray = Array.isArray(tags) ? tags : [tags];
+            query.tags = { $in: tagArray };
         }
 
         const products = await Product.find(query)
@@ -214,6 +244,49 @@ exports.deleteProduct = async (req, res, next) => {
 
         res.status(200).json({
             message: "Product deleted successfully.",
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Get recommended products based on shared categories
+ */
+exports.getRecommendedProducts = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        // Find the current product to get its categories
+        const currentProduct = await Product.findById(id);
+
+        if (!currentProduct) {
+            return res.status(404).json({ message: "Product not found." });
+        }
+
+        // If product has no categories, return empty recommendations
+        if (!currentProduct.categories || currentProduct.categories.length === 0) {
+            return res.status(200).json({
+                message: "No recommendations available.",
+                products: [],
+                count: 0,
+            });
+        }
+
+        // Find products that share at least one category
+        const recommendations = await Product.find({
+            _id: { $ne: id }, // Exclude current product
+            isActive: true, // Only active products
+            categories: { $in: currentProduct.categories }, // Match at least one category
+        })
+            .limit(8) // Limit to 8 recommendations
+            .sort({ createdAt: -1 }) // Newest first
+            .select("name slug price comparePrice images stock brand categories tags");
+
+        res.status(200).json({
+            message: "Recommendations fetched successfully.",
+            products: recommendations,
+            count: recommendations.length,
         });
     } catch (error) {
         next(error);

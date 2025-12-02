@@ -12,6 +12,7 @@ export const SearchBar = () => {
     const debouncedSearch = useDebounce(localSearch, 300);
 
     // Update Redux when debounced value changes
+    // FilterSidebar's useEffect will handle fetching products
     useEffect(() => {
         dispatch(setSearchQuery(debouncedSearch));
     }, [debouncedSearch, dispatch]);
