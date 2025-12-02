@@ -18,7 +18,39 @@ require("./config/cloudinary");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+
+    // Allow your deployed frontend (add your frontend URL here when deployed)
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      // Add your deployed frontend URL here, e.g.:
+      // 'https://your-frontend.vercel.app',
+      // 'https://your-frontend.netlify.app',
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // For now, allow all origins (you can restrict this later)
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 connectDB();
