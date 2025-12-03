@@ -56,6 +56,23 @@ export const UserMenu = () => {
                         </span>
                     </div>
 
+                    {/* Profile Link */}
+                    <Link
+                        to="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            />
+                        </svg>
+                        My Profile
+                    </Link>
+
                     {/* Orders Link */}
                     <Link
                         to="/orders"

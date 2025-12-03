@@ -18,9 +18,16 @@ exports.getAllProducts = async (req, res, next) => {
         const { search, categories, minPrice, maxPrice, brands, tags } = req.query;
         const query = { isActive: true };
 
-        // Text search
+        // Partial, case-insensitive search on name and description
         if (search) {
-            query.$text = { $search: search };
+            const searchTerm = search.trim();
+            if (searchTerm) {
+                query.$or = [
+                    { name: { $regex: searchTerm, $options: 'i' } },
+                    { description: { $regex: searchTerm, $options: 'i' } },
+                    { brand: { $regex: searchTerm, $options: 'i' } }
+                ];
+            }
         }
 
         // Category filter - match any of the selected categories
@@ -53,8 +60,7 @@ exports.getAllProducts = async (req, res, next) => {
         }
 
         const products = await Product.find(query)
-            .sort(search ? { score: { $meta: "textScore" }, createdAt: -1 } : { createdAt: -1 })
-            .select(search ? { score: { $meta: "textScore" } } : {});
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             message: "Products fetched successfully.",

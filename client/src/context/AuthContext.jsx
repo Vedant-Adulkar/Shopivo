@@ -23,6 +23,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("authUser");
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("authUser", JSON.stringify(updatedUser));
+  };
+
   const value = useMemo(
     () => ({
       token,
@@ -30,6 +35,7 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: Boolean(token && user),
       login,
       logout,
+      updateUser,
     }),
     [token, user]
   );
