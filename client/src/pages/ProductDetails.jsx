@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById } from "../api/products";
 import { addToCart } from "../store/slices/cartSlice";
+import { fetchProductReviews, fetchUserProductReview, clearUserProductReview } from "../store/slices/reviewsSlice";
 import { MainLayout } from "../layouts/MainLayout";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 import { formatPrice } from "../utils/formatters";
 import { Toast } from "../components/ui/Toast";
 import { RecommendedProducts } from "../components/products/RecommendedProducts";
+import ReviewForm from "../components/reviews/ReviewForm";
+import ReviewList from "../components/reviews/ReviewList";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Product Details Page - displays comprehensive product information
@@ -23,6 +27,12 @@ const ProductDetails = () => {
     const [quantity, setQuantity] = useState(1);
     const [addingToCart, setAddingToCart] = useState(false);
     const [toast, setToast] = useState(null);
+    const [showReviewForm, setShowReviewForm] = useState(false);
+
+    const { user, isAuthenticated } = useAuth();
+    const reviews = useSelector((state) => state.reviews.productReviews);
+    const userReview = useSelector((state) => state.reviews.userProductReview);
+    const reviewsLoading = useSelector((state) => state.reviews.loading);
 
     useEffect(() => {
         const loadProduct = async () => {
@@ -40,6 +50,32 @@ const ProductDetails = () => {
 
         loadProduct();
     }, [id]);
+
+    useEffect(() => {
+        if (id) {
+            dispatch(fetchProductReviews({ productId: id, page: 1, limit: 10 }));
+            if (isAuthenticated) {
+                dispatch(fetchUserProductReview(id));
+            }
+        }
+        return () => {
+            dispatch(clearUserProductReview());
+        };
+    }, [id, dispatch, isAuthenticated]);
+
+    const handleReviewSuccess = () => {
+        setShowReviewForm(false);
+        dispatch(fetchProductReviews({ productId: id, page: 1, limit: 10 }));
+        dispatch(fetchUserProductReview(id));
+        setToast({ type: "success", message: "Review submitted successfully!" });
+    };
+
+    const handleReviewUpdate = () => {
+        dispatch(fetchProductReviews({ productId: id, page: 1, limit: 10 }));
+        if (isAuthenticated) {
+            dispatch(fetchUserProductReview(id));
+        }
+    };
 
     if (loading) {
         return (
@@ -328,6 +364,88 @@ const ProductDetails = () => {
                         </div>
                     )
                 }
+
+                {/* Reviews Section */}
+                <div className="mt-8 space-y-6">
+                    {/* Reviews Header with Rating Summary */}
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Customer Reviews</h2>
+                            {product.reviewCount > 0 && (
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <span
+                                                key={star}
+                                                className={`text-xl ${star <= Math.round(product.averageRating)
+                                                    ? "text-yellow-400"
+                                                    : "text-slate-600"
+                                                    }`}
+                                            >
+                                                ★
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <span className="text-lg font-semibold text-white">
+                                        {product.averageRating?.toFixed(1) || "0.0"}
+                                    </span>
+                                    <span className="text-slate-400">
+                                        ({product.reviewCount} {product.reviewCount === 1 ? "review" : "reviews"})
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Write Review Button */}
+                        {isAuthenticated && !userReview && !showReviewForm && (
+                            <button
+                                onClick={() => setShowReviewForm(true)}
+                                className="rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-violet-500/50"
+                            >
+                                Write a Review
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Review Form - Only for new reviews */}
+                    {isAuthenticated && showReviewForm && !userReview && (
+                        <ReviewForm
+                            productId={product._id}
+                            existingReview={null}
+                            onSuccess={handleReviewSuccess}
+                            onCancel={() => setShowReviewForm(false)}
+                        />
+                    )}
+
+                    {/* Login Prompt for Non-Authenticated Users */}
+                    {!isAuthenticated && (
+                        <div className="rounded-xl border border-white/10 bg-gradient-to-br from-slate-900/90 to-slate-800/70 p-6 backdrop-blur-sm text-center">
+                            <p className="text-slate-300 mb-4">
+                                Please log in to write a review
+                            </p>
+                            <button
+                                onClick={() => navigate("/login")}
+                                className="rounded-lg bg-gradient-to-r from-violet-500 to-indigo-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-violet-500/50"
+                            >
+                                Log In
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Reviews List */}
+                    {reviewsLoading ? (
+                        <div className="flex justify-center py-8">
+                            <LoadingSpinner size="md" />
+                        </div>
+                    ) : (
+                        <ReviewList
+                            reviews={reviews}
+                            productId={product._id}
+                            userReview={userReview}
+                            onReviewUpdate={handleReviewUpdate}
+                        />
+                    )}
+                </div>
 
                 {/* Recommended Products */}
                 <RecommendedProducts productId={product._id} />

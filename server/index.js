@@ -11,6 +11,10 @@ const productRoutes = require("./routes/productRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
+const addressRoutes = require("./routes/addressRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
+const statsRoutes = require("./routes/statsRoutes");
 
 // Initialize Cloudinary configuration (after dotenv)
 require("./config/cloudinary");
@@ -46,7 +50,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
@@ -64,6 +68,10 @@ app.use("/api/products", productRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/admin", statsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

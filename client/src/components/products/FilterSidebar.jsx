@@ -91,11 +91,51 @@ export const FilterSidebar = ({ isOpen, onClose }) => {
                     {/* Price Range */}
                     <div className="filter-section">
                         <h3 className="filter-section-title">Price Range</h3>
+
                         <div className="price-slider-container">
-                            <div className="price-values">
-                                <span className="price-value">${priceInputs.minPrice || 0}</span>
-                                <span className="price-value">${priceInputs.maxPrice || 10000}</span>
+                            {/* Compact Price Inputs */}
+                            <div className="flex justify-between items-center mb-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-slate-400">Min:</span>
+                                    <input
+                                        type="number"
+                                        name="minPrice"
+                                        min="0"
+                                        max="10000"
+                                        value={priceInputs.minPrice}
+                                        onChange={(e) => {
+                                            const value = Math.max(0, Math.min(10000, Number(e.target.value) || 0));
+                                            const maxPrice = priceInputs.maxPrice || 10000;
+                                            if (value <= maxPrice) {
+                                                handlePriceChange(e);
+                                            }
+                                        }}
+                                        onBlur={handlePriceApply}
+                                        className="w-20 px-2 py-1 bg-slate-900/50 border border-white/10 rounded text-white text-sm focus:border-violet-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-slate-400">Max:</span>
+                                    <input
+                                        type="number"
+                                        name="maxPrice"
+                                        min="0"
+                                        max="10000"
+                                        value={priceInputs.maxPrice}
+                                        onChange={(e) => {
+                                            const value = Math.max(0, Math.min(10000, Number(e.target.value) || 0));
+                                            const minPrice = priceInputs.minPrice || 0;
+                                            if (value >= minPrice) {
+                                                handlePriceChange(e);
+                                            }
+                                        }}
+                                        onBlur={handlePriceApply}
+                                        className="w-20 px-2 py-1 bg-slate-900/50 border border-white/10 rounded text-white text-sm focus:border-violet-500 focus:outline-none"
+                                    />
+                                </div>
                             </div>
+
+                            {/* Integrated Range Slider */}
                             <div className="price-slider-wrapper">
                                 <input
                                     type="range"
@@ -121,6 +161,13 @@ export const FilterSidebar = ({ isOpen, onClose }) => {
                                     onTouchEnd={handlePriceApply}
                                     className="price-slider price-slider-max"
                                 />
+                            </div>
+
+                            {/* Range Display */}
+                            <div className="price-values mt-2">
+                                <span className="price-value">${priceInputs.minPrice || 0}</span>
+                                <span className="text-slate-500">—</span>
+                                <span className="price-value">${priceInputs.maxPrice || 10000}</span>
                             </div>
                         </div>
                     </div>

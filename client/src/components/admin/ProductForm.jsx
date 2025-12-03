@@ -168,25 +168,33 @@ export const ProductForm = ({ product, onSubmit, onCancel, loading }) => {
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="mb-2 block text-sm font-semibold text-slate-300">
-                        Categories
+                        Categories *
                     </label>
-                    <select
-                        name="categories"
-                        multiple
-                        value={formData.categories}
-                        onChange={(e) => {
-                            const selected = Array.from(e.target.selectedOptions, option => option.value);
-                            setFormData(prev => ({ ...prev, categories: selected }));
-                        }}
-                        className="w-full rounded-xl border border-white/10 bg-slate-900/50 px-4 py-3 text-white backdrop-blur-sm transition-all duration-200 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 min-h-[120px]"
-                    >
-                        {PRODUCT_CATEGORIES.map((cat) => (
-                            <option key={cat} value={cat}>
-                                {cat}
-                            </option>
-                        ))}
-                    </select>
-                    <p className="mt-1 text-xs text-slate-400">Hold Ctrl/Cmd to select multiple</p>
+                    <div className="rounded-xl border border-white/10 bg-slate-900/50 p-4 backdrop-blur-sm max-h-[200px] overflow-y-auto">
+                        <div className="space-y-2">
+                            {PRODUCT_CATEGORIES.map((cat) => (
+                                <label
+                                    key={cat}
+                                    className="flex items-center gap-2 cursor-pointer hover:bg-white/5 p-2 rounded-lg transition-colors"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.categories.includes(cat)}
+                                        onChange={() => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                categories: prev.categories.includes(cat)
+                                                    ? prev.categories.filter(c => c !== cat)
+                                                    : [...prev.categories, cat]
+                                            }));
+                                        }}
+                                        className="h-4 w-4 rounded border-white/20 bg-slate-900/50 text-violet-500 focus:ring-2 focus:ring-violet-500/50"
+                                    />
+                                    <span className="text-sm text-slate-300">{cat}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
                     {formData.categories.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                             {formData.categories.map((cat) => (

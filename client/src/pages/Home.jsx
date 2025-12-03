@@ -4,6 +4,8 @@ import { MainLayout } from "../layouts/MainLayout";
 import { ProductGrid } from "../components/products/ProductGrid";
 import { EmptyState } from "../components/products/EmptyState";
 import { FilterSidebar } from "../components/products/FilterSidebar";
+import AdminStatsPanel from "../components/admin/AdminStatsPanel";
+import { useAuth } from "../context/AuthContext";
 import {
     fetchProducts,
     selectFilteredProducts,
@@ -24,10 +26,15 @@ const Home = () => {
     const filters = useSelector(selectFilters);
     const activeFilterCount = useSelector(selectActiveFilterCount);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const { user } = useAuth();
+    const isAdmin = user?.role === "admin";
 
     return (
         <MainLayout showSearch={true}>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                {/* Admin Statistics Panel */}
+                {isAdmin && <AdminStatsPanel />}
+
                 {/* Header with Filter Toggle */}
                 <div className="mb-8 flex items-center justify-between">
                     <div>

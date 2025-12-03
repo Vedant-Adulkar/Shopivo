@@ -62,7 +62,8 @@ export const deleteProduct = createAsyncThunk(
 const productsSlice = createSlice({
     name: "products",
     initialState: {
-        items: [],
+        allProducts: [], // Complete unfiltered list (for filter options)
+        filteredProducts: [], // Filtered results from backend
         loading: false,
         error: null,
         searchQuery: "",
@@ -134,7 +135,21 @@ const productsSlice = createSlice({
             })
             .addCase(fetchProducts.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload;
+                state.filteredProducts = action.payload;
+
+                // Update allProducts when:
+                // 1. It's empty (first load)
+                // 2. No filters are active (showing all products)
+                const hasActiveFilters =
+                    state.filters.categories.length > 0 ||
+                    state.filters.brands.length > 0 ||
+                    state.filters.tags.length > 0 ||
+                    state.filters.minPrice ||
+                    state.filters.maxPrice;
+
+                if (state.allProducts.length === 0 || (!hasActiveFilters && !state.searchQuery)) {
+                    state.allProducts = action.payload;
+                }
             })
             .addCase(fetchProducts.rejected, (state, action) => {
                 state.loading = false;
@@ -147,7 +162,8 @@ const productsSlice = createSlice({
             })
             .addCase(createProduct.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items.unshift(action.payload);
+                state.allProducts.unshift(action.payload);
+                state.filteredProducts.unshift(action.payload);
             })
             .addCase(createProduct.rejected, (state, action) => {
                 state.loading = false;
@@ -160,9 +176,13 @@ const productsSlice = createSlice({
             })
             .addCase(updateProduct.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.items.findIndex((p) => p._id === action.payload._id);
-                if (index !== -1) {
-                    state.items[index] = action.payload;
+                const allIndex = state.allProducts.findIndex((p) => p._id === action.payload._id);
+                if (allIndex !== -1) {
+                    state.allProducts[allIndex] = action.payload;
+                }
+                const filteredIndex = state.filteredProducts.findIndex((p) => p._id === action.payload._id);
+                if (filteredIndex !== -1) {
+                    state.filteredProducts[filteredIndex] = action.payload;
                 }
             })
             .addCase(updateProduct.rejected, (state, action) => {
@@ -176,7 +196,8 @@ const productsSlice = createSlice({
             })
             .addCase(deleteProduct.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = state.items.filter((p) => p._id !== action.payload);
+                state.allProducts = state.allProducts.filter((p) => p._id !== action.payload);
+                state.filteredProducts = state.filteredProducts.filter((p) => p._id !== action.payload);
             })
             .addCase(deleteProduct.rejected, (state, action) => {
                 state.loading = false;
@@ -186,18 +207,19 @@ const productsSlice = createSlice({
 });
 
 // Selectors
-export const selectAllProducts = (state) => state.products.items;
+export const selectAllProducts = (state) => state.products.allProducts;
 export const selectProductsLoading = (state) => state.products.loading;
 export const selectProductsError = (state) => state.products.error;
 export const selectSearchQuery = (state) => state.products.searchQuery;
 export const selectFilters = (state) => state.products.filters;
 
-// Return products from Redux store (already filtered by backend)
-export const selectFilteredProducts = (state) => state.products.items;
+// Return filtered products from Redux store (already filtered by backend)
+export const selectFilteredProducts = (state) => state.products.filteredProducts;
 
-// Get unique filter options from all products
+// Get unique filter options from ALL products (not filtered)
+// This ensures filter options remain stable regardless of current filters
 export const selectAvailableFilterOptions = (state) => {
-    const products = state.products.items;
+    const products = state.products.allProducts;
 
     const categories = [...new Set(products.flatMap(p => p.categories || []))].sort();
     const brands = [...new Set(products.map(p => p.brand).filter(Boolean))].sort();

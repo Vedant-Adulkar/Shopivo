@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 /**
@@ -54,6 +55,25 @@ export const UserMenu = () => {
                             {user?.role}
                         </span>
                     </div>
+
+                    {/* Orders Link */}
+                    <Link
+                        to="/orders"
+                        onClick={() => setIsOpen(false)}
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                    >
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                            />
+                        </svg>
+                        My Orders
+                    </Link>
+
+                    {/* Logout Button */}
                     <button
                         onClick={() => {
                             logout();
