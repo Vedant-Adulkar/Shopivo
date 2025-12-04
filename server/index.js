@@ -36,8 +36,8 @@ const corsOptions = {
 
     // Allow your deployed frontend (add your frontend URL here when deployed)
     const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:3000',
+      'https://shopivo.onrender.com',
+
       // Add your deployed frontend URL here, e.g.:
       // 'https://your-frontend.vercel.app',
       // 'https://your-frontend.netlify.app',
